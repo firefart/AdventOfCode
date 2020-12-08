@@ -14,16 +14,21 @@ type bag struct {
 	containedInColor []string
 }
 
-func resolveColors(set map[string]bag, topColors []string) map[string]struct{} {
-	res := make(map[string]struct{})
+func resolveColors(set map[string]bag, topColors []string) map[string]int {
+	res := make(map[string]int)
 	for _, color := range topColors {
 		x := set[color]
 		// add the main color
-		res[color] = struct{}{}
+		if v, ok := res[color]; ok {
+			res[color] = v + x.count
+		} else {
+			res[color] = x.count
+		}
+
 		// recursive call for the other colors
 		y := resolveColors(set, x.containedInColor)
-		for k := range y {
-			res[k] = struct{}{}
+		for k, v := range y {
+			res[k] = v
 		}
 	}
 	return res
@@ -51,7 +56,9 @@ func main() {
 		parts := strings.Split(contains, ", ")
 		for _, part := range parts {
 			if part == "no other bags" {
-				set[mainColor] = bag{}
+				set[mainColor] = bag{
+					count: 0,
+				}
 				continue
 			}
 			match := bagrex.FindStringSubmatch(part)
@@ -67,6 +74,7 @@ func main() {
 			}
 			if val, ok := set[subColor]; ok {
 				val.containedInColor = append(val.containedInColor, mainColor)
+				val.count += amInt
 				set[subColor] = val
 			} else {
 				set[subColor] = bag{
