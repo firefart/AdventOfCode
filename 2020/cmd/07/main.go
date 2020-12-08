@@ -10,28 +10,32 @@ import (
 )
 
 type bag struct {
-	count            int
-	containedInColor []string
+	bags map[string]int
 }
 
-func resolveColors(set map[string]bag, topColors []string) map[string]int {
-	res := make(map[string]int)
-	for _, color := range topColors {
-		x := set[color]
-		// add the main color
-		if v, ok := res[color]; ok {
-			res[color] = v + x.count
-		} else {
-			res[color] = x.count
-		}
-
-		// recursive call for the other colors
-		y := resolveColors(set, x.containedInColor)
-		for k, v := range y {
-			res[k] = v
+func execute(set map[string]bag, topElement string) map[string]bag {
+	ret := make(map[string]bag)
+	workingElement := set[topElement]
+	ret[topElement] = workingElement
+	for k, v := range workingElement.bags {
+		log.Info(k, " ", v)
+		x := execute(set, k)
+		for k2, v2 := range x {
+			ret[k2] = v2
 		}
 	}
-	return res
+	return ret
+}
+
+func countBags(set map[string]bag, name string) int {
+	workingElement := set[name]
+	count := 0
+	for k, v := range workingElement.bags {
+		count += v
+		count += countBags(set, k)
+	}
+	count *= len(workingElement.bags)
+	return count
 }
 
 func main() {
@@ -56,9 +60,7 @@ func main() {
 		parts := strings.Split(contains, ", ")
 		for _, part := range parts {
 			if part == "no other bags" {
-				set[mainColor] = bag{
-					count: 0,
-				}
+				set[mainColor] = bag{}
 				continue
 			}
 			match := bagrex.FindStringSubmatch(part)
@@ -72,21 +74,25 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			if val, ok := set[subColor]; ok {
-				val.containedInColor = append(val.containedInColor, mainColor)
-				val.count += amInt
-				set[subColor] = val
+			if val, ok := set[mainColor]; ok {
+				if len(val.bags) == 0 {
+					val.bags = make(map[string]int)
+				}
+				val.bags[subColor] = amInt
+				set[mainColor] = val
 			} else {
-				set[subColor] = bag{
-					count:            amInt,
-					containedInColor: []string{mainColor},
+				bags := make(map[string]int)
+				bags[subColor] = amInt
+				set[mainColor] = bag{
+					bags: bags,
 				}
 			}
 		}
 	}
-	top := set["shiny gold"]
-	res := resolveColors(set, top.containedInColor)
-	log.Infof("Part 1: %d", len(res))
-
-	log.Info(res)
+	x := execute(set, "shiny gold")
+	log.Info(x)
+	log.Infof("Part 1: %d", len(x))
+	// log.Info(set)
+	y := countBags(set, "shiny gold")
+	log.Info(y)
 }
