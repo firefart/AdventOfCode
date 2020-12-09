@@ -10,32 +10,41 @@ import (
 )
 
 type bag struct {
-	bags map[string]int
+	amount int
+	name   string
 }
 
-func execute(set map[string]bag, topElement string) map[string]bag {
-	ret := make(map[string]bag)
-	workingElement := set[topElement]
-	ret[topElement] = workingElement
-	for k, v := range workingElement.bags {
-		log.Info(k, " ", v)
-		x := execute(set, k)
-		for k2, v2 := range x {
-			ret[k2] = v2
+func getSubBagCount(bags map[string][]bag, bagname string) int {
+	b, ok := bags[bagname]
+	if !ok {
+		log.Fatalf("Bag %s not yet processed", bagname)
+	}
+
+	count := 1
+	for _, subbag := range b {
+		count += subbag.amount * getSubBagCount(bags, subbag.name)
+	}
+	return count
+}
+
+func hasGoldBagInBag(bags map[string][]bag, bagname string) bool {
+	b, ok := bags[bagname]
+	if !ok {
+		log.Fatalf("Bag %s not yet processed", bagname)
+	}
+
+	for _, subbag := range b {
+		if subbag.name == "shiny gold" {
+			return true
 		}
 	}
-	return ret
-}
 
-func countBags(set map[string]bag, name string) int {
-	workingElement := set[name]
-	count := 0
-	for k, v := range workingElement.bags {
-		count += v
-		count += countBags(set, k)
+	for _, subbag := range b {
+		if hasGoldBagInBag(bags, subbag.name) {
+			return true
+		}
 	}
-	count *= len(workingElement.bags)
-	return count
+	return false
 }
 
 func main() {
@@ -47,7 +56,7 @@ func main() {
 	re := regexp.MustCompile(`^([\w\s]+) bags contain ([\w\s,]+).$`)
 	bagrex := regexp.MustCompile(`^(\d+) ([\w\s]+) bags?$`)
 
-	set := make(map[string]bag)
+	set := make(map[string][]bag)
 
 	for _, line := range input {
 		match := re.FindStringSubmatch(line)
@@ -60,7 +69,7 @@ func main() {
 		parts := strings.Split(contains, ", ")
 		for _, part := range parts {
 			if part == "no other bags" {
-				set[mainColor] = bag{}
+				set[mainColor] = []bag{}
 				continue
 			}
 			match := bagrex.FindStringSubmatch(part)
@@ -74,25 +83,21 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			if val, ok := set[mainColor]; ok {
-				if len(val.bags) == 0 {
-					val.bags = make(map[string]int)
-				}
-				val.bags[subColor] = amInt
-				set[mainColor] = val
-			} else {
-				bags := make(map[string]int)
-				bags[subColor] = amInt
-				set[mainColor] = bag{
-					bags: bags,
-				}
-			}
+			set[mainColor] = append(set[mainColor], bag{
+				amount: amInt,
+				name:   subColor,
+			})
 		}
 	}
-	x := execute(set, "shiny gold")
-	log.Info(x)
-	log.Infof("Part 1: %d", len(x))
-	// log.Info(set)
-	y := countBags(set, "shiny gold")
-	log.Info(y)
+
+	count := 0
+	for outerBagName := range set {
+		if hasGoldBagInBag(set, outerBagName) {
+			count++
+		}
+	}
+	log.Infof("Part 1: %d", count)
+
+	// -1: Subtract to top golden bag
+	log.Infof("Part 2: %d", getSubBagCount(set, "shiny gold")-1)
 }
