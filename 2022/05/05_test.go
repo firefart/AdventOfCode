@@ -225,7 +225,7 @@ func TestTopCrate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("%d", tc.column), func(t *testing.T) {
-			got := topCrate(tc.column, tc.crates)
+			got := topCrateInColumn(tc.column, tc.crates)
 			if got.rune != tc.wantRune {
 				t.Errorf("topCrate() got rune %c, want %c", got.rune, tc.wantRune)
 			}

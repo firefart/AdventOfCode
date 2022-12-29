@@ -71,7 +71,7 @@ func logic(input []byte) error {
 		if err != nil {
 			return err
 		}
-		cratesPart1 = moveCratePart1(howMany, from, to, cratesPart1)
+		// cratesPart1 = moveCratePart1(howMany, from, to, cratesPart1)
 		cratesPart2 = moveCratePart2(howMany, from, to, cratesPart2)
 	}
 
@@ -147,7 +147,7 @@ func printMatrix(matrix [][]rune) {
 
 func moveCratePart1(howMany, from, to int, crates [][]rune) [][]rune {
 	for i := 0; i < howMany; i++ {
-		topCrateObj := topCrate(from-1, crates)
+		topCrateObj := topCrateInColumn(from-1, crates)
 		topCrateRune := topCrateObj.rune
 		topCrateIndex := topCrateObj.index
 		emptyCrateIndex := emptyCrate(to-1, crates)
@@ -164,18 +164,16 @@ func moveCratePart1(howMany, from, to int, crates [][]rune) [][]rune {
 }
 
 func moveCratePart2(howMany, from, to int, crates [][]rune) [][]rune {
-	topCrateObjs := topCrates(from-1, howMany, crates)
-	topCrateRune := topCrateObj.rune
-	topCrateIndex := topCrateObj.index
-	emptyCrateIndex := emptyCrate(to-1, crates)
-	if emptyCrateIndex == -1 {
-		crates = addRow(crates)
-		emptyCrateIndex = 0
-		topCrateIndex += 1
+	printMatrix(crates)
+	// get crate stack
+	crateStack := topCratesInColumn(from-1, howMany, crates)
+	// move crate stack to new location
+	crates = moveStackToColumn(crateStack, to-1, crates)
+	// remove crate stack in old location
+	for _, crate := range crateStack {
+		crates[crate.index][from-1] = ' '
 	}
-	crates[emptyCrateIndex][to-1] = topCrateRune
-	crates[topCrateIndex][from-1] = ' '
-	// printMatrix(crates)
+	printMatrix(crates)
 	return crates
 }
 
@@ -195,24 +193,36 @@ type crate struct {
 	index int
 }
 
-func topCrate(column int, crates [][]rune) crate {
-	return topCrates(column, 1, crates)[0]
+func topCrateInColumn(column int, crates [][]rune) crate {
+	return topCratesInColumn(column, 1, crates)[0]
 }
 
-func topCrates(column, howMany int, crates [][]rune) []crate {
+func topCratesInColumn(column, howMany int, crates [][]rune) []crate {
 	// top down
+	printMatrix(crates)
+	fmt.Printf("Col: %d\n", column)
+	fmt.Printf("Amount: %d\n", howMany)
 	var ret []crate
 	for i, row := range crates {
 		if row[column] != ' ' {
 			for j := 0; j < howMany; j++ {
+				fmt.Printf("i: %d\n", i)
+				fmt.Printf("j: %d\n", j)
+				fmt.Printf("runs: %c\n", crates[i+j][column])
 				ret = append(ret, crate{
 					index: i + j,
 					rune:  crates[i+j][column],
 				})
 			}
+			return ret
 		}
 	}
 	return ret
+}
+
+func moveStackToColumn(crateStack []crate, to int, crates [][]rune) [][]rune {
+	// todo add row to top if overflown
+	return crates
 }
 
 func cloneMatrix(matrix [][]rune) [][]rune {
@@ -227,8 +237,8 @@ func cloneMatrix(matrix [][]rune) [][]rune {
 func getTopCrateString(crates [][]rune) string {
 	var ret strings.Builder
 	for i := 0; i < len(crates[0]); i++ {
-		r, _ := topCrate(i, crates)
-		_, err := ret.WriteRune(r)
+		r := topCrateInColumn(i, crates)
+		_, err := ret.WriteRune(r.rune)
 		if err != nil {
 			panic(err)
 		}
