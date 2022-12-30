@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+type matrix struct {
+	content [][]rune
+}
+
 func main() {
 	f, err := os.Open("input")
 	if err != nil {
@@ -45,10 +49,10 @@ func logic(input []byte) error {
 		}
 	}
 
-	cratesPart1 := parseCrates(crateString.String())
-	cratesPart2 := cloneMatrix(cratesPart1)
+	cratesPart1 := matrix{content: parseCrates(crateString.String())}
+	cratesPart2 := matrix{content: cloneMatrix(cratesPart1.content)}
 
-	printMatrix(cratesPart1)
+	printMatrix(cratesPart1.content)
 
 	for _, command := range strings.Split(inputString.String(), "\n") {
 		if strings.TrimSpace(command) == "" {
@@ -71,16 +75,16 @@ func logic(input []byte) error {
 		if err != nil {
 			return err
 		}
-		// cratesPart1 = moveCratePart1(howMany, from, to, cratesPart1)
-		cratesPart2 = moveCratePart2(howMany, from, to, cratesPart2)
+		// cratesPart1.moveCratePart1(howMany, from, to)
+		cratesPart2.moveCratePart2(howMany, from, to)
 	}
 
 	if err := scanner.Err(); err != nil {
 		return err
 	}
 
-	fmt.Printf("Part1: %s\n", getTopCrateString(cratesPart1))
-	fmt.Printf("Part2: %s\n", getTopCrateString(cratesPart2))
+	fmt.Printf("Part1: %s\n", cratesPart1.getTopCrateString())
+	fmt.Printf("Part2: %s\n", cratesPart2.getTopCrateString())
 
 	return nil
 }
@@ -115,16 +119,16 @@ func parseCrates(in string) [][]rune {
 	return matrix
 }
 
-func addRow(crates [][]rune) [][]rune {
-	new := make([][]rune, len(crates)+1)
-	new[0] = make([]rune, len(crates[0]))
-	for i := range crates[0] {
+func (m *matrix) addRow() {
+	new := make([][]rune, len(m.content)+1)
+	new[0] = make([]rune, len(m.content[0]))
+	for i := range m.content[0] {
 		new[0][i] = ' '
 	}
-	for i, row := range crates {
+	for i, row := range m.content {
 		new[i+1] = row
 	}
-	return new
+	m.content = new
 }
 
 func printMatrix(matrix [][]rune) {
@@ -145,42 +149,40 @@ func printMatrix(matrix [][]rune) {
 	fmt.Println(sb.String())
 }
 
-func moveCratePart1(howMany, from, to int, crates [][]rune) [][]rune {
+func (m *matrix) moveCratePart1(howMany, from, to int) {
 	for i := 0; i < howMany; i++ {
-		topCrateObj := topCrateInColumn(from-1, crates)
+		topCrateObj := m.topCrateInColumn(from - 1)
 		topCrateRune := topCrateObj.rune
 		topCrateIndex := topCrateObj.index
-		emptyCrateIndex := emptyCrate(to-1, crates)
+		emptyCrateIndex := m.emptyCrate(to - 1)
 		if emptyCrateIndex == -1 {
-			crates = addRow(crates)
+			m.addRow()
 			emptyCrateIndex = 0
 			topCrateIndex += 1
 		}
-		crates[emptyCrateIndex][to-1] = topCrateRune
-		crates[topCrateIndex][from-1] = ' '
+		m.content[emptyCrateIndex][to-1] = topCrateRune
+		m.content[topCrateIndex][from-1] = ' '
 		// printMatrix(crates)
 	}
-	return crates
 }
 
-func moveCratePart2(howMany, from, to int, crates [][]rune) [][]rune {
-	printMatrix(crates)
+func (m *matrix) moveCratePart2(howMany, from, to int) {
+	printMatrix(m.content)
 	// get crate stack
-	crateStack := topCratesInColumn(from-1, howMany, crates)
+	crateStack := m.topCratesInColumn(from-1, howMany)
 	// move crate stack to new location
-	crates = moveStackToColumn(crateStack, to-1, crates)
+	m.moveStackToColumn(crateStack, to-1)
 	// remove crate stack in old location
 	for _, crate := range crateStack {
-		crates[crate.index][from-1] = ' '
+		m.content[crate.index][from-1] = ' '
 	}
-	printMatrix(crates)
-	return crates
+	printMatrix(m.content)
 }
 
-func emptyCrate(column int, crates [][]rune) int {
+func (m *matrix) emptyCrate(column int) int {
 	// bottom up
-	for i := len(crates) - 1; i >= 0; i-- {
-		row := crates[i]
+	for i := len(m.content) - 1; i >= 0; i-- {
+		row := m.content[i]
 		if row[column] == ' ' {
 			return i
 		}
@@ -193,25 +195,25 @@ type crate struct {
 	index int
 }
 
-func topCrateInColumn(column int, crates [][]rune) crate {
-	return topCratesInColumn(column, 1, crates)[0]
+func (m *matrix) topCrateInColumn(column int) crate {
+	return m.topCratesInColumn(column, 1)[0]
 }
 
-func topCratesInColumn(column, howMany int, crates [][]rune) []crate {
+func (m *matrix) topCratesInColumn(column, howMany int) []crate {
 	// top down
-	printMatrix(crates)
+	printMatrix(m.content)
 	fmt.Printf("Col: %d\n", column)
 	fmt.Printf("Amount: %d\n", howMany)
 	var ret []crate
-	for i, row := range crates {
+	for i, row := range m.content {
 		if row[column] != ' ' {
 			for j := 0; j < howMany; j++ {
 				fmt.Printf("i: %d\n", i)
 				fmt.Printf("j: %d\n", j)
-				fmt.Printf("runs: %c\n", crates[i+j][column])
+				fmt.Printf("rune: %c\n", m.content[i+j][column])
 				ret = append(ret, crate{
 					index: i + j,
-					rune:  crates[i+j][column],
+					rune:  m.content[i+j][column],
 				})
 			}
 			return ret
@@ -220,9 +222,26 @@ func topCratesInColumn(column, howMany int, crates [][]rune) []crate {
 	return ret
 }
 
-func moveStackToColumn(crateStack []crate, to int, crates [][]rune) [][]rune {
+func (m *matrix) moveStackToColumn(crateStack []crate, to int) {
 	// todo add row to top if overflown
-	return crates
+	// get index of first empty crate from bottom up
+	printMatrix(m.content)
+	firstEmptyCrate := m.emptyCrate(to)
+	fmt.Println(crateStack)
+	fmt.Printf("Index: %d\n", firstEmptyCrate)
+	fmt.Printf("TO: %d\n", to)
+	for i := len(crateStack) - 1; i <= 0; i++ {
+		row := firstEmptyCrate - i
+		fmt.Printf("Before: %c\n", m.content[row][to])
+		m.content[row][to] = crateStack[i].rune
+		fmt.Printf("After: %c\n", m.content[row][to])
+	}
+	// for i, crate := range crateStack {
+	// fmt.Printf("Before: %c\n", m.content[firstEmptyCrate-i][to])
+	// m.content[firstEmptyCrate-i][to] = crate.rune
+	// fmt.Printf("After: %c\n", m.content[firstEmptyCrate-i][to])
+	// }
+	printMatrix(m.content)
 }
 
 func cloneMatrix(matrix [][]rune) [][]rune {
@@ -234,10 +253,10 @@ func cloneMatrix(matrix [][]rune) [][]rune {
 	return duplicate
 }
 
-func getTopCrateString(crates [][]rune) string {
+func (m *matrix) getTopCrateString() string {
 	var ret strings.Builder
-	for i := 0; i < len(crates[0]); i++ {
-		r := topCrateInColumn(i, crates)
+	for i := 0; i < len(m.content[0]); i++ {
+		r := m.topCrateInColumn(i)
 		_, err := ret.WriteRune(r.rune)
 		if err != nil {
 			panic(err)
