@@ -75,7 +75,7 @@ func logic(input []byte) error {
 		if err != nil {
 			return err
 		}
-		// cratesPart1.moveCratePart1(howMany, from, to)
+		cratesPart1.moveCratePart1(howMany, from, to)
 		cratesPart2.moveCratePart2(howMany, from, to)
 	}
 
@@ -154,17 +154,9 @@ func printMatrix(matrix [][]rune) {
 func (m *matrix) moveCratePart1(howMany, from, to int) {
 	for i := 0; i < howMany; i++ {
 		topCrateObj := m.topCrateInColumn(from - 1)
-		topCrateRune := topCrateObj.rune
-		topCrateIndex := topCrateObj.index
-		emptyCrateIndex := m.emptyCrate(to - 1)
-		if emptyCrateIndex == -1 {
-			m.addRow()
-			emptyCrateIndex = 0
-			topCrateIndex += 1
-		}
-		m.content[emptyCrateIndex][to-1] = topCrateRune
-		m.content[topCrateIndex][from-1] = ' '
-		// printMatrix(crates)
+		rowsAdded := m.moveStackToColumn([]crate{topCrateObj}, to-1)
+		// remove crate in old location
+		m.content[topCrateObj.index+rowsAdded][from-1] = ' '
 	}
 }
 
