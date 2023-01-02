@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -67,70 +68,73 @@ func TestEmptyCrate(t *testing.T) {
 	}{
 		{
 			want:   0,
-			crates: cr1,
+			crates: cloneMatrix(cr1),
 			column: 0,
 		},
 		{
 			want:   -1,
-			crates: cr1,
+			crates: cloneMatrix(cr1),
 			column: 1,
 		},
 		{
 			want:   1,
-			crates: cr1,
+			crates: cloneMatrix(cr1),
 			column: 2,
 		},
 
 		{
 			want:   3,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 0,
 		},
 		{
 			want:   1,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 1,
 		},
 		{
 			want:   0,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 2,
 		},
 		{
 			want:   0,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 3,
 		},
 		{
 			want:   4,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 4,
 		},
 		{
 			want:   2,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 5,
 		},
 		{
 			want:   -1,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 6,
 		},
 		{
 			want:   -1,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 7,
 		},
 		{
 			want:   -1,
-			crates: cr2,
+			crates: cloneMatrix(cr2),
 			column: 8,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("%d", tc.column), func(t *testing.T) {
-			got := emptyCrate(tc.column, tc.crates)
+			crates := matrix{
+				content: tc.crates,
+			}
+			got := crates.emptyCrate(tc.column)
 			want := tc.want
 			if got != want {
 				t.Errorf("firstEmptyIndexInColumn() got %d, want %d", got, want)
@@ -139,7 +143,7 @@ func TestEmptyCrate(t *testing.T) {
 	}
 }
 
-func TestTopCrate(t *testing.T) {
+func TestTopCrateInColumn(t *testing.T) {
 	cr1 := parseCrates(in1)
 	cr2 := parseCrates(in2)
 
@@ -152,85 +156,208 @@ func TestTopCrate(t *testing.T) {
 		{
 			wantRune:  'N',
 			wantIndex: 1,
-			crates:    cr1,
+			crates:    cloneMatrix(cr1),
 			column:    0,
 		},
 		{
 			wantRune:  'D',
 			wantIndex: 0,
-			crates:    cr1,
+			crates:    cloneMatrix(cr1),
 			column:    1,
 		},
 		{
 			wantRune:  'P',
 			wantIndex: 2,
-			crates:    cr1,
+			crates:    cloneMatrix(cr1),
 			column:    2,
 		},
 		{
 			wantRune:  'N',
 			wantIndex: 4,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    0,
 		},
 		{
 			wantRune:  'S',
 			wantIndex: 2,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    1,
 		},
 		{
 			wantRune:  'D',
 			wantIndex: 1,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    2,
 		},
 		{
 			wantRune:  'M',
 			wantIndex: 1,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    3,
 		},
 		{
 			wantRune:  'H',
 			wantIndex: 5,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    4,
 		},
 		{
 			wantRune:  'J',
 			wantIndex: 3,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    5,
 		},
 		{
 			wantRune:  'Z',
 			wantIndex: 0,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    6,
 		},
 		{
 			wantRune:  'W',
 			wantIndex: 0,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    7,
 		},
 		{
 			wantRune:  'Z',
 			wantIndex: 0,
-			crates:    cr2,
+			crates:    cloneMatrix(cr2),
 			column:    8,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("%d", tc.column), func(t *testing.T) {
-			got := topCrateInColumn(tc.column, tc.crates)
+			crates := matrix{
+				content: tc.crates,
+			}
+			got := crates.topCrateInColumn(tc.column)
 			if got.rune != tc.wantRune {
-				t.Errorf("topCrate() got rune %c, want %c", got.rune, tc.wantRune)
+				t.Errorf("topCrateInColumn() got rune %c, want %c", got.rune, tc.wantRune)
 			}
 			if rune(got.index) != rune(tc.wantIndex) {
-				t.Errorf("topCrate() got index %d, want %d", got.index, tc.wantIndex)
+				t.Errorf("topCrateInColumn() got index %d, want %d", got.index, tc.wantIndex)
+			}
+		})
+	}
+}
+
+func TestTopCratesInColumn(t *testing.T) {
+	cr1 := parseCrates(in1)
+	// cr2 := parseCrates(in2)
+
+	tests := []struct {
+		column int
+		amount int
+		crates [][]rune
+		want   string
+	}{
+		{
+			crates: cloneMatrix(cr1),
+			column: 0,
+			amount: 2,
+			want:   "NZ",
+		},
+		{
+			crates: cloneMatrix(cr1),
+			column: 1,
+			amount: 3,
+			want:   "DCM",
+		},
+		{
+			crates: cloneMatrix(cr1),
+			column: 1,
+			amount: 2,
+			want:   "DC",
+		},
+		{
+			crates: cloneMatrix(cr1),
+			column: 1,
+			amount: 1,
+			want:   "D",
+		},
+		{
+			crates: cloneMatrix(cr1),
+			column: 1,
+			amount: 0,
+			want:   "",
+		},
+		{
+			crates: cloneMatrix(cr1),
+			column: 1,
+			amount: 1000,
+			want:   "DCM",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("%d from %d - %s", tc.amount, tc.column, tc.want), func(t *testing.T) {
+			crates := matrix{
+				content: tc.crates,
+			}
+			got := crates.topCratesInColumn(tc.column, tc.amount)
+			sb := strings.Builder{}
+			for _, r := range got {
+				sb.WriteRune(r.rune)
+			}
+			gotString := sb.String()
+			if gotString != tc.want {
+				t.Errorf("topCratesInColumn() got %s, want %s", gotString, tc.want)
+			}
+		})
+	}
+}
+
+func TestMoveStackToColumn(t *testing.T) {
+	cr1 := parseCrates(in1)
+	// cr2 := parseCrates(in2)
+
+	tests := []struct {
+		crateStack    string
+		toColumn      int
+		crates        [][]rune
+		want          string
+		wantRowsAdded int
+	}{
+		{
+			crates:        cloneMatrix(cr1),
+			toColumn:      2,
+			crateStack:    "AB",
+			want:          "ABP",
+			wantRowsAdded: 0,
+		},
+		{
+			crates:        cloneMatrix(cr1),
+			toColumn:      2,
+			crateStack:    "ABCDEFG",
+			want:          "ABCDEFGP",
+			wantRowsAdded: 5,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("%s to %d - %s", tc.crateStack, tc.toColumn, tc.want), func(t *testing.T) {
+			crates := matrix{
+				content: tc.crates,
+			}
+			crateStack := make([]crate, len(tc.crateStack))
+			for i, s := range tc.crateStack {
+				crateStack[i] = crate{
+					rune: rune(s),
+				}
+			}
+			rowsAdded := crates.moveStackToColumn(crateStack, tc.toColumn)
+			if rowsAdded != tc.wantRowsAdded {
+				t.Errorf("rowsAdded: got %d, want %d", rowsAdded, tc.wantRowsAdded)
+			}
+			sb := strings.Builder{}
+			for _, r := range crates.content {
+				sb.WriteRune(r[tc.toColumn])
+			}
+			gotString := sb.String()
+			if gotString != tc.want {
+				t.Errorf("moveStackToColumn() got %q, want %q", gotString, tc.want)
 			}
 		})
 	}
