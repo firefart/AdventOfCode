@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -32,8 +33,10 @@ func logic(input []byte) error {
 	if err != nil {
 		return err
 	}
-	size := tree.calculateSize()
+	size := tree.sumWithLimit(100000)
 	fmt.Printf("Part 1: %d\n", size)
+	size2 := tree.findDirToDelete()
+	fmt.Printf("Part 2: %d\n", size2)
 	return nil
 }
 
@@ -171,4 +174,51 @@ func (d *Directory) calculateSize() int {
 		size += d.calculateSize()
 	}
 	return size
+}
+
+func (d *Directory) sumWithLimit(limit int) int {
+	size := 0
+	for _, c := range d.Childs {
+		x := c.calculateSize()
+		if x <= limit {
+			size += x
+		}
+		size += c.sumWithLimit(limit)
+	}
+	return size
+}
+
+func (d *Directory) findDirToDelete() int {
+	outerMostUsedSpace := d.calculateSize()
+	totalSpace := 70000000
+	currentFreeSpace := totalSpace - outerMostUsedSpace
+	targetFreeSpace := 30000000
+	spaceNeeded := targetFreeSpace - currentFreeSpace
+	// fmt.Printf("Space needed: %d\n", spaceNeeded)
+
+	smallest := math.MaxInt
+	candidates := d.recurseDirectories(spaceNeeded)
+	for _, c := range candidates {
+		s := c.calculateSize()
+		if s < smallest {
+			smallest = s
+		}
+	}
+	return smallest
+}
+
+func (d *Directory) recurseDirectories(spaceToFree int) []*Directory {
+	var candidates []*Directory
+	for _, c := range d.Childs {
+		x := c.calculateSize()
+		if x >= spaceToFree {
+			// fmt.Printf("found candidate %s with size %d\n", c.Name, x)
+			candidates = append(candidates, c)
+		}
+		// } else {
+		// 	fmt.Printf("dir %s over limit with size %d\n", c.Name, x)
+		// }
+		candidates = append(candidates, c.recurseDirectories(spaceToFree)...)
+	}
+	return candidates
 }

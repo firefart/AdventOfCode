@@ -140,6 +140,16 @@ func TestParseTree(t *testing.T) {
 	checkDirSize(t, tree.Childs[1], 24933642)
 	// As the outermost directory, / contains every file. Its total size is 48381165, the sum of the size of every file.
 	checkDirSize(t, tree, 48381165)
+
+	got := tree.sumWithLimit(100000)
+	if got != 95437 {
+		t.Errorf("sumWithLimit(100000) got: %d, want: %d", got, 95437)
+	}
+
+	got = tree.findDirToDelete()
+	if got != 24933642 {
+		t.Errorf("findDirToDelete() got: %d, want: %d", got, 24933642)
+	}
 }
 
 func checkDirSize(t *testing.T, d *Directory, want int) {
