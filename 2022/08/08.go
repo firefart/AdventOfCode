@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -16,7 +16,7 @@ func main() {
 		fmt.Printf("%v\n", err)
 		return
 	}
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return
@@ -78,59 +78,76 @@ func treeVisible(trees [][]int, row, col int) bool {
 		return true
 	}
 
-	// fmt.Printf("%d/%d visibleFromRight: %t\n", row, col, visibleFromRight(trees, row, col))
-	// fmt.Printf("%d/%d visibleFromLeft: %t\n", row, col, visibleFromLeft(trees, row, col))
-	// fmt.Printf("%d/%d visibleFromTop: %t\n", row, col, visibleFromTop(trees, row, col))
-	// fmt.Printf("%d/%d visibleFromBottom: %t\n", row, col, visibleFromBottom(trees, row, col))
+	visRight, _ := visibleFromRight(trees, row, col)
+	visLeft, _ := visibleFromLeft(trees, row, col)
+	visTop, _ := visibleFromTop(trees, row, col)
+	visBottom, _ := visibleFromBottom(trees, row, col)
 
-	if visibleFromRight(trees, row, col) ||
-		visibleFromLeft(trees, row, col) ||
-		visibleFromTop(trees, row, col) ||
-		visibleFromBottom(trees, row, col) {
+	// fmt.Printf("%d/%d visibleFromRight: %t\n", row, col, visRight)
+	// fmt.Printf("%d/%d visibleFromLeft: %t\n", row, col, visLeft)
+	// fmt.Printf("%d/%d visibleFromTop: %t\n", row, col, visTop)
+	// fmt.Printf("%d/%d visibleFromBottom: %t\n", row, col, visBottom)
+
+	if visRight ||
+		visLeft ||
+		visTop ||
+		visBottom {
 		return true
 	}
 
 	return false
 }
 
-func visibleFromLeft(trees [][]int, row, col int) bool {
+// returns true if visible from the direction and also the scenicscore
+func visibleFromLeft(trees [][]int, row, col int) (bool, int) {
 	tree := trees[row][col]
+	count := 0
 	for i := col - 1; i >= 0; i-- {
+		count++
 		if trees[row][i] >= tree {
-			return false
+			return false, count
 		}
 	}
-	return true
+	return true, count
 }
 
-func visibleFromRight(trees [][]int, row, col int) bool {
+// returns true if visible from the direction and also the scenicscore
+func visibleFromRight(trees [][]int, row, col int) (bool, int) {
 	tree := trees[row][col]
+	count := 0
 	for i := col + 1; i < len(trees[row]); i++ {
+		count++
 		if trees[row][i] >= tree {
-			return false
+			return false, count
 		}
 	}
-	return true
+	return true, count
 }
 
-func visibleFromTop(trees [][]int, row, col int) bool {
+// returns true if visible from the direction and also the scenicscore
+func visibleFromTop(trees [][]int, row, col int) (bool, int) {
 	tree := trees[row][col]
+	count := 0
 	for i := row - 1; i >= 0; i-- {
+		count++
 		if trees[i][col] >= tree {
-			return false
+			return false, count
 		}
 	}
-	return true
+	return true, count
 }
 
-func visibleFromBottom(trees [][]int, row, col int) bool {
+// returns true if visible from the direction and also the scenicscore
+func visibleFromBottom(trees [][]int, row, col int) (bool, int) {
 	tree := trees[row][col]
+	count := 0
 	for i := row + 1; i < len(trees); i++ {
+		count++
 		if trees[i][col] >= tree {
-			return false
+			return false, count
 		}
 	}
-	return true
+	return true, count
 }
 
 func bestScenicScore(trees [][]int) int {
@@ -151,10 +168,10 @@ func bestScenicScore(trees [][]int) int {
 }
 
 func scenicScore(trees [][]int, row, col int) int {
-	top := 0
-	left := 0
-	right := 0
-	bottom := 0
+	_, right := visibleFromRight(trees, row, col)
+	_, left := visibleFromLeft(trees, row, col)
+	_, top := visibleFromTop(trees, row, col)
+	_, bottom := visibleFromBottom(trees, row, col)
 
 	return top * left * right * bottom
 }

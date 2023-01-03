@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"strconv"
@@ -17,7 +17,7 @@ func main() {
 		fmt.Printf("%v\n", err)
 		return
 	}
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return
