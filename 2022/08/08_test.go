@@ -34,8 +34,8 @@ func TestParseTrees(t *testing.T) {
 
 func TestTreeVisible(t *testing.T) {
 	tests := []struct {
-		col  int
 		row  int
+		col  int
 		want bool
 	}{
 		{
@@ -205,5 +205,41 @@ func TestCountVisibleTrees(t *testing.T) {
 	want := 21
 	if got != want {
 		t.Fatalf("countVisibleTrees() got %d want %d", got, want)
+	}
+}
+
+func TestScenicScore(t *testing.T) {
+	tests := []struct {
+		row  int
+		col  int
+		want int
+	}{
+		{
+			row:  1,
+			col:  2,
+			want: 4,
+		},
+		{
+			row:  3,
+			col:  2,
+			want: 8,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("%d/%d -> %d", tc.row, tc.col, tc.want), func(t *testing.T) {
+			got := scenicScore(parsed, tc.row, tc.col)
+			if got != tc.want {
+				t.Errorf("scenicScore() got %d want %d", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestBestScenicScore(t *testing.T) {
+	got := bestScenicScore(parsed)
+	want := 8
+	if got != want {
+		t.Fatalf("bestScenicScore() got %d want %d", got, want)
 	}
 }

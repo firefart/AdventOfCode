@@ -33,6 +33,8 @@ func logic(input []byte) error {
 	}
 	count := countVisibleTrees(trees)
 	fmt.Printf("Part 1: %d\n", count)
+	scenicScore := bestScenicScore(trees)
+	fmt.Printf("Part 2: %d\n", scenicScore)
 	return nil
 }
 
@@ -129,4 +131,30 @@ func visibleFromBottom(trees [][]int, row, col int) bool {
 		}
 	}
 	return true
+}
+
+func bestScenicScore(trees [][]int) int {
+	var score []int
+	for rowIndex, row := range trees {
+		for colIndex := range row {
+			score = append(score, scenicScore(trees, rowIndex, colIndex))
+		}
+	}
+
+	highest := 0
+	for _, s := range score {
+		if s > highest {
+			highest = s
+		}
+	}
+	return highest
+}
+
+func scenicScore(trees [][]int, row, col int) int {
+	top := 0
+	left := 0
+	right := 0
+	bottom := 0
+
+	return top * left * right * bottom
 }
