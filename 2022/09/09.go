@@ -81,17 +81,35 @@ func main() {
 	}
 }
 
+func printFieldToTerminal(field *Playfield, m *Move) {
+	tm.Clear()
+	tm.MoveCursor(1, 1)
+	if m != nil {
+		tm.Println(m)
+	}
+	if field != nil {
+		tm.Println(field)
+	}
+	tm.Flush()
+}
+
 func logic(input []byte) error {
 	field := newPlayfield(3, 3)
 	moves := parseMoves(string(input))
+
+	// print initial field
+	printFieldToTerminal(field, nil)
+	time.Sleep(1 * time.Second)
+
 	for _, m := range moves {
-		tm.Clear()
-		tm.MoveCursor(1, 1)
-		tm.Println(m)
-		tm.Println(field)
-		tm.Flush()
+		field.move(m)
+		printFieldToTerminal(field, &m)
 		time.Sleep(1 * time.Second)
 	}
+	field.Finished = true
+	tm.Clear()
+	tm.Println(field)
+	tm.Flush()
 	return nil
 }
 
@@ -149,12 +167,12 @@ func newPlayfield(rows, cols int) *Playfield {
 	}
 }
 
-func (m Playfield) String() string {
+func (p Playfield) String() string {
 	var sb strings.Builder
-	for _, row := range m.Content {
+	for _, row := range p.Content {
 		for _, col := range row {
 			content := col.Content
-			if m.Finished && col.VisitedByTail {
+			if p.Finished && col.VisitedByTail {
 				content = "#"
 			}
 			if content == "" {
@@ -167,57 +185,65 @@ func (m Playfield) String() string {
 	return strings.TrimSpace(sb.String())
 }
 
-func (m *Playfield) addRowToBottom() {
-	rowCount := len(m.Content)
+func (p *Playfield) addRowToBottom() {
+	rowCount := len(p.Content)
 	newField := make([][]Field, rowCount+1)
-	newField[rowCount] = make([]Field, len(m.Content[rowCount-1]))
-	for i, row := range m.Content {
+	newField[rowCount] = make([]Field, len(p.Content[rowCount-1]))
+	for i, row := range p.Content {
 		newField[i] = row
 	}
-	m.Content = newField
+	p.Content = newField
 }
 
-func (m *Playfield) addRowToTop() {
-	rowCount := len(m.Content)
-	colCount := len(m.Content[0])
+func (p *Playfield) addRowToTop() {
+	rowCount := len(p.Content)
+	colCount := len(p.Content[0])
 	newField := make([][]Field, rowCount+1)
 	newField[0] = make([]Field, colCount)
-	for i, row := range m.Content {
+	for i, row := range p.Content {
 		newField[i+1] = row
 	}
-	m.Content = newField
+	p.Content = newField
 
 	// move head and tails one row down as the coordinates change
-	m.Head.Row += 1
-	m.Tail.Row += 1
+	p.Head.Row += 1
+	p.Tail.Row += 1
 }
 
-func (m *Playfield) addColumnToRight() {
-	rowCount := len(m.Content)
+func (p *Playfield) addColumnToRight() {
+	rowCount := len(p.Content)
 	newField := make([][]Field, rowCount)
-	for i, row := range m.Content {
+	for i, row := range p.Content {
 		newField[i] = make([]Field, len(row)+1)
 		for j, col := range row {
 			newField[i][j] = col
 		}
 		newField[i][len(row)] = Field{}
 	}
-	m.Content = newField
+	p.Content = newField
 }
 
-func (m *Playfield) addColumnToLeft() {
-	rowCount := len(m.Content)
+func (p *Playfield) addColumnToLeft() {
+	rowCount := len(p.Content)
 	newField := make([][]Field, rowCount)
-	for i, row := range m.Content {
+	for i, row := range p.Content {
 		newField[i] = make([]Field, len(row)+1)
 		newField[i][0] = Field{}
 		for j, col := range row {
 			newField[i][j+1] = col
 		}
 	}
-	m.Content = newField
+	p.Content = newField
 
 	// move head and tails one col right as the coordinates change
-	m.Head.Col += 1
-	m.Tail.Col += 1
+	p.Head.Col += 1
+	p.Tail.Col += 1
+}
+
+func (p *Playfield) move(m Move) {
+
+}
+
+func (p *Playfield) moveTailToHead() {
+
 }
