@@ -162,6 +162,8 @@ func newPlayfield(rows, cols int) *Playfield {
 	for i := range matrix {
 		matrix[i] = make([]Field, cols)
 	}
+	// as we start bottom left this field is always visited by the tail
+	matrix[rows-1][0].VisitedByTail = true
 	return &Playfield{
 		// starting bottom left
 		Head: Position{
@@ -296,7 +298,40 @@ func (p *Playfield) moveHead(dir Direction) {
 }
 
 func (p *Playfield) moveTailToHead() {
+	if p.Tail.Row == p.Head.Row && p.Tail.Col == p.Head.Col {
+		p.Content[p.Tail.Row][p.Tail.Col].VisitedByTail = true
+		return
+	}
 
+	rowDirection := p.Tail.Row - p.Head.Row
+	colDirection := p.Tail.Col - p.Head.Col
+
+	if rowDirection == 0 {
+		// only move left or right in this case as we are already in the correct row
+		if colDirection == 0 || colDirection == 1 || colDirection == -1 {
+			// ignore as we are next to the head
+		} else if colDirection > 0 {
+			// move tail to the left
+			p.Tail.Col -= 1
+		} else {
+			// move tail to the right
+			p.Tail.Col += 1
+		}
+	} else if colDirection == 0 {
+		// only move up or down in this case as we are already in the correct row
+		if rowDirection == 0 || rowDirection == 1 || rowDirection == -1 {
+			// ignore as we are next to the head
+		} else if rowDirection > 0 {
+			// move up one row
+			p.Tail.Row -= 1
+		} else {
+			// move down one row
+			p.Tail.Row += 1
+		}
+	}
+
+	// detect head and move one tile into this direction
+	p.Content[p.Tail.Row][p.Tail.Col].VisitedByTail = true
 }
 
 func (p *Playfield) getTailVisitNumber() int {
