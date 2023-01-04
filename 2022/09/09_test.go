@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 )
 
 var input = `R 4
@@ -79,3 +80,25 @@ func Test(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func TestAddRowAndColumn(t *testing.T) {
+	m := newPlayfield(3, 3)
+	assert := assert.New(t)
+	assert.Equal(3, len(m.Content))
+	assert.Equal(3, len(m.Content[0]))
+	m.addColumnToLeft()
+	assert.Equal(3, len(m.Content))
+	assert.Equal(4, len(m.Content[0]))
+	m.addColumnToLeft()
+	assert.Equal(3, len(m.Content))
+	assert.Equal(5, len(m.Content[0]))
+	m.addRowToBottom()
+	assert.Equal(4, len(m.Content))
+	assert.Equal(5, len(m.Content[0]))
+	m.addColumnToRight()
+	assert.Equal(4, len(m.Content))
+	assert.Equal(6, len(m.Content[0]))
+	m.addRowToBottom()
+	assert.Equal(5, len(m.Content))
+	assert.Equal(6, len(m.Content[0]))
+}
