@@ -94,21 +94,30 @@ func printFieldToTerminal(field *Playfield, m *Move) {
 }
 
 func logic(input []byte) error {
+	const sleepTime = 1 * time.Second
+	// start with a 3x3 grid as we don't know the final size
 	field := newPlayfield(3, 3)
 	moves := parseMoves(string(input))
 
 	// print initial field
 	printFieldToTerminal(field, nil)
-	time.Sleep(1 * time.Second)
+	time.Sleep(sleepTime)
 
 	for _, m := range moves {
-		field.move(m)
-		printFieldToTerminal(field, &m)
-		time.Sleep(1 * time.Second)
+		for i := 0; i < m.Count; i++ {
+			field.moveHead(m.Dir)
+			printFieldToTerminal(field, &m)
+			time.Sleep(sleepTime)
+			field.moveTailToHead()
+			printFieldToTerminal(field, &m)
+			time.Sleep(sleepTime)
+		}
 	}
 	field.Finished = true
 	tm.Clear()
+	tm.MoveCursor(1, 1)
 	tm.Println(field)
+	tm.Printf("Part1: Tail visited %d tiles\n", field.getTailVisitNumber())
 	tm.Flush()
 	return nil
 }
@@ -240,10 +249,25 @@ func (p *Playfield) addColumnToLeft() {
 	p.Tail.Col += 1
 }
 
-func (p *Playfield) move(m Move) {
+func (p *Playfield) moveHead(dir Direction) {
 
 }
 
 func (p *Playfield) moveTailToHead() {
 
+}
+
+func (p *Playfield) getTailVisitNumber() int {
+	if !p.Finished {
+		panic("only call this method after finish!")
+	}
+	count := 0
+	for _, row := range p.Content {
+		for _, col := range row {
+			if col.VisitedByTail {
+				count++
+			}
+		}
+	}
+	return count
 }
