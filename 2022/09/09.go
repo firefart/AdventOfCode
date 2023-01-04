@@ -26,6 +26,8 @@ type Playfield struct {
 	Head     Position
 	Tail     Position
 	Finished bool
+	Rows     int
+	Columns  int
 }
 
 type Direction int
@@ -171,6 +173,8 @@ func newPlayfield(rows, cols int) *Playfield {
 			Row: rows - 1,
 			Col: 0,
 		},
+		Rows:     rows,
+		Columns:  cols,
 		Finished: false,
 		Content:  matrix,
 	}
@@ -207,24 +211,23 @@ func (p Playfield) String() string {
 }
 
 func (p *Playfield) addRowToBottom() {
-	rowCount := len(p.Content)
-	newField := make([][]Field, rowCount+1)
-	newField[rowCount] = make([]Field, len(p.Content[rowCount-1]))
+	newField := make([][]Field, p.Rows+1)
+	newField[p.Rows] = make([]Field, len(p.Content[p.Rows-1]))
 	for i, row := range p.Content {
 		newField[i] = row
 	}
 	p.Content = newField
+	p.Rows += 1
 }
 
 func (p *Playfield) addRowToTop() {
-	rowCount := len(p.Content)
-	colCount := len(p.Content[0])
-	newField := make([][]Field, rowCount+1)
-	newField[0] = make([]Field, colCount)
+	newField := make([][]Field, p.Rows+1)
+	newField[0] = make([]Field, p.Columns)
 	for i, row := range p.Content {
 		newField[i+1] = row
 	}
 	p.Content = newField
+	p.Rows += 1
 
 	// move head and tails one row down as the coordinates change
 	p.Head.Row += 1
@@ -232,8 +235,7 @@ func (p *Playfield) addRowToTop() {
 }
 
 func (p *Playfield) addColumnToRight() {
-	rowCount := len(p.Content)
-	newField := make([][]Field, rowCount)
+	newField := make([][]Field, p.Rows)
 	for i, row := range p.Content {
 		newField[i] = make([]Field, len(row)+1)
 		for j, col := range row {
@@ -242,11 +244,11 @@ func (p *Playfield) addColumnToRight() {
 		newField[i][len(row)] = Field{}
 	}
 	p.Content = newField
+	p.Columns += 1
 }
 
 func (p *Playfield) addColumnToLeft() {
-	rowCount := len(p.Content)
-	newField := make([][]Field, rowCount)
+	newField := make([][]Field, p.Rows)
 	for i, row := range p.Content {
 		newField[i] = make([]Field, len(row)+1)
 		newField[i][0] = Field{}
@@ -255,6 +257,7 @@ func (p *Playfield) addColumnToLeft() {
 		}
 	}
 	p.Content = newField
+	p.Columns += 1
 
 	// move head and tails one col right as the coordinates change
 	p.Head.Col += 1
@@ -262,7 +265,34 @@ func (p *Playfield) addColumnToLeft() {
 }
 
 func (p *Playfield) moveHead(dir Direction) {
-
+	switch dir {
+	case DirectionUp:
+		// check if we need to add a row to the top
+		if p.Head.Row == 0 {
+			p.addRowToTop()
+		}
+		p.Head.Row -= 1
+	case DirectionDown:
+		// check if we need to add a row to the bottom
+		if p.Head.Row == p.Rows-1 {
+			p.addRowToBottom()
+		}
+		p.Head.Row += 1
+	case DirectionLeft:
+		// check if we need to add a column to the left
+		if p.Head.Col == 0 {
+			p.addColumnToLeft()
+		}
+		p.Head.Col -= 1
+	case DirectionRight:
+		// check if we need to add a column to the right
+		if p.Head.Col == p.Columns-1 {
+			p.addColumnToRight()
+		}
+		p.Head.Col += 1
+	default:
+		panic(fmt.Sprintf("direction %d not implemented", dir))
+	}
 }
 
 func (p *Playfield) moveTailToHead() {
