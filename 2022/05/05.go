@@ -48,6 +48,9 @@ func logic(input []byte) error {
 			inputString.WriteString(fmt.Sprintf("%s\n", s))
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
 
 	cratesPart1 := matrix{content: parseCrates(crateString.String())}
 	cratesPart2 := matrix{content: cloneMatrix(cratesPart1.content)}
@@ -77,10 +80,6 @@ func logic(input []byte) error {
 		}
 		cratesPart1.moveCratePart1(howMany, from, to)
 		cratesPart2.moveCratePart2(howMany, from, to)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
 	}
 
 	printMatrix(cratesPart1.content)
