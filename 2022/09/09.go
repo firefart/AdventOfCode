@@ -6,6 +6,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
+
+	tm "github.com/buger/goterm"
 )
 
 type Position struct {
@@ -79,9 +82,15 @@ func main() {
 }
 
 func logic(input []byte) error {
+	field := newPlayfield(3, 3)
 	moves := parseMoves(string(input))
 	for _, m := range moves {
-		fmt.Println(m)
+		tm.Clear()
+		tm.MoveCursor(1, 1)
+		tm.Println(m)
+		tm.Println(field)
+		tm.Flush()
+		time.Sleep(1 * time.Second)
 	}
 	return nil
 }
