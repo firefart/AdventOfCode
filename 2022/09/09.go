@@ -178,8 +178,8 @@ func newPlayfield(rows, cols int) *Playfield {
 
 func (p Playfield) String() string {
 	var sb strings.Builder
-	for _, row := range p.Content {
-		for _, col := range row {
+	for rowIndex, row := range p.Content {
+		for colIndex, col := range row {
 			content := col.Content
 			if p.Finished && col.VisitedByTail {
 				content = "#"
@@ -187,6 +187,18 @@ func (p Playfield) String() string {
 			if content == "" {
 				content = "."
 			}
+
+			// print tail (T), head (H) or overlapping (O) when not finished
+			if !p.Finished {
+				if p.Tail.Row == p.Head.Row && p.Tail.Col == p.Head.Col && p.Tail.Row == rowIndex && p.Tail.Col == colIndex {
+					content = "O"
+				} else if p.Tail.Row == rowIndex && p.Tail.Col == colIndex {
+					content = "T"
+				} else if p.Head.Row == rowIndex && p.Head.Col == colIndex {
+					content = "H"
+				}
+			}
+
 			sb.WriteString(fmt.Sprintf("%s", content))
 		}
 		sb.WriteString("\n")

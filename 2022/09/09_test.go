@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -58,29 +57,6 @@ func TestParseMoves(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
-	p := newPlayfield(3, 3)
-	fmt.Println(p)
-	p.addColumnToLeft()
-	fmt.Println("#####")
-	fmt.Println(p)
-}
-
-// func TestTopCratesInColumn(t *testing.T) {
-// 	tests := []struct {
-// 		column int
-// 		amount int
-// 		crates [][]rune
-// 		want   string
-// 	}{}
-
-// 	for _, tc := range tests {
-// 		t.Run(fmt.Sprintf("%d from %d - %s", tc.amount, tc.column, tc.want), func(t *testing.T) {
-
-// 		})
-// 	}
-// }
-
 func TestAddRowAndColumn(t *testing.T) {
 	m := newPlayfield(3, 3)
 	assert := assert.New(t)
@@ -101,4 +77,24 @@ func TestAddRowAndColumn(t *testing.T) {
 	m.addRowToBottom()
 	assert.Equal(5, len(m.Content))
 	assert.Equal(6, len(m.Content[0]))
+	m.addRowToTop()
+	assert.Equal(6, len(m.Content))
+	assert.Equal(6, len(m.Content[0]))
+}
+
+func TestGetTailVisitNumber(t *testing.T) {
+	field := newPlayfield(3, 3)
+	moves := parseMoves(input)
+	for _, m := range moves {
+		for i := 0; i < m.Count; i++ {
+			field.moveHead(m.Dir)
+			field.moveTailToHead()
+		}
+	}
+	field.Finished = true
+	got := field.getTailVisitNumber()
+	want := 13
+	if got != want {
+		t.Fatalf("getTailVisitNumber() got %d, want %d", got, want)
+	}
 }
