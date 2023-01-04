@@ -169,6 +169,14 @@ func (m *Playfield) addRowToBottom() {
 }
 
 func (m *Playfield) addRowToTop() {
+	rowCount := len(m.Content)
+	colCount := len(m.Content[0])
+	newField := make([][]Field, rowCount+1)
+	newField[0] = make([]Field, colCount)
+	for i, row := range m.Content {
+		newField[i+1] = row
+	}
+	m.Content = newField
 
 	// move head and tails one row down as the coordinates change
 	m.Head.Row += 1
@@ -189,6 +197,16 @@ func (m *Playfield) addColumnToRight() {
 }
 
 func (m *Playfield) addColumnToLeft() {
+	rowCount := len(m.Content)
+	newField := make([][]Field, rowCount)
+	for i, row := range m.Content {
+		newField[i] = make([]Field, len(row)+1)
+		newField[i][0] = Field{}
+		for j, col := range row {
+			newField[i][j+1] = col
+		}
+	}
+	m.Content = newField
 
 	// move head and tails one col right as the coordinates change
 	m.Head.Col += 1

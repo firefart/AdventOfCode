@@ -60,7 +60,7 @@ func TestParseMoves(t *testing.T) {
 func Test(t *testing.T) {
 	p := newPlayfield(3, 3)
 	fmt.Println(p)
-	p.addColumnToRight()
+	p.addColumnToLeft()
 	fmt.Println("#####")
 	fmt.Println(p)
 }
