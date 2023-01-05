@@ -303,6 +303,13 @@ func (p *Playfield) moveTailToHead() {
 		return
 	}
 
+	// TODO: check if next to head and bail out
+	// TODO: can also remove the other checks below once implemented
+
+	// col pos: left
+	// col neg: right
+	// row pos: up
+	// row neg: down
 	rowDirection := p.Tail.Row - p.Head.Row
 	colDirection := p.Tail.Col - p.Head.Col
 
@@ -328,6 +335,24 @@ func (p *Playfield) moveTailToHead() {
 			// move down one row
 			p.Tail.Row += 1
 		}
+	} else if rowDirection > 0 && colDirection > 0 {
+		// diagonal up left
+		p.Tail.Row -= 1 // one row up
+		p.Tail.Col -= 1 // move one col left
+	} else if rowDirection < 0 && colDirection < 0 {
+		// diagonal down right
+		p.Tail.Row += 1 // one row down
+		p.Tail.Col += 1 // move one col right
+	} else if rowDirection > 0 && colDirection < 0 {
+		// diagonal up right
+		p.Tail.Row -= 1 // one row up
+		p.Tail.Col += 1 // move one col right
+	} else if rowDirection < 0 && colDirection > 0 {
+		// diagonal down left
+		p.Tail.Row += 1 // one row down
+		p.Tail.Col -= 1 // move one col left
+	} else {
+		panic("if is invalid")
 	}
 
 	// detect head and move one tile into this direction
