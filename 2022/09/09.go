@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -68,6 +69,8 @@ func (m Move) String() string {
 }
 
 func main() {
+	sleepDuration := flag.Duration("sleep", 1*time.Second, "how long to sleep")
+	flag.Parse()
 	f, err := os.Open("input")
 	if err != nil {
 		fmt.Printf("%v\n", err)
@@ -78,7 +81,7 @@ func main() {
 		fmt.Printf("%v\n", err)
 		return
 	}
-	if err := logic(content); err != nil {
+	if err := logic(content, *sleepDuration); err != nil {
 		fmt.Printf("%v\n", err)
 	}
 }
@@ -95,24 +98,23 @@ func printFieldToTerminal(field *Playfield, m *Move) {
 	tm.Flush()
 }
 
-func logic(input []byte) error {
-	const sleepTime = 1 * time.Second
+func logic(input []byte, sleepDuration time.Duration) error {
 	// start with a 3x3 grid as we don't know the final size
 	field := newPlayfield(3, 3)
 	moves := parseMoves(string(input))
 
 	// print initial field
 	printFieldToTerminal(field, nil)
-	time.Sleep(sleepTime)
+	time.Sleep(sleepDuration)
 
 	for _, m := range moves {
 		for i := 0; i < m.Count; i++ {
 			field.moveHead(m.Dir)
 			printFieldToTerminal(field, &m)
-			time.Sleep(sleepTime)
+			time.Sleep(sleepDuration)
 			field.moveTailToHead()
 			printFieldToTerminal(field, &m)
-			time.Sleep(sleepTime)
+			time.Sleep(sleepDuration)
 		}
 	}
 	field.Finished = true
@@ -298,13 +300,26 @@ func (p *Playfield) moveHead(dir Direction) {
 }
 
 func (p *Playfield) moveTailToHead() {
+	// bail out on overlap
 	if p.Tail.Row == p.Head.Row && p.Tail.Col == p.Head.Col {
 		p.Content[p.Tail.Row][p.Tail.Col].VisitedByTail = true
 		return
 	}
 
-	// TODO: check if next to head and bail out
-	// TODO: can also remove the other checks below once implemented
+	// bail out if directly below or above
+	if p.Tail.Col == p.Head.Col && (p.Tail.Row == p.Head.Row-1 || p.Tail.Row == p.Head.Row+1) {
+		return
+	}
+
+	// bail out if left or right
+	if p.Tail.Row == p.Head.Row && (p.Tail.Col == p.Head.Col-1 || p.Tail.Col == p.Head.Col+1) {
+		return
+	}
+
+	// check diagonals
+	if (p.Tail.Row == p.Head.Row-1 || p.Tail.Row == p.Head.Row+1) && (p.Tail.Col == p.Head.Col-1 || p.Tail.Col == p.Head.Col+1) {
+		return
+	}
 
 	// col pos: left
 	// col neg: right
@@ -315,9 +330,7 @@ func (p *Playfield) moveTailToHead() {
 
 	if rowDirection == 0 {
 		// only move left or right in this case as we are already in the correct row
-		if colDirection == 0 || colDirection == 1 || colDirection == -1 {
-			// ignore as we are next to the head
-		} else if colDirection > 0 {
+		if colDirection > 0 {
 			// move tail to the left
 			p.Tail.Col -= 1
 		} else {
@@ -326,9 +339,7 @@ func (p *Playfield) moveTailToHead() {
 		}
 	} else if colDirection == 0 {
 		// only move up or down in this case as we are already in the correct row
-		if rowDirection == 0 || rowDirection == 1 || rowDirection == -1 {
-			// ignore as we are next to the head
-		} else if rowDirection > 0 {
+		if rowDirection > 0 {
 			// move up one row
 			p.Tail.Row -= 1
 		} else {
