@@ -102,11 +102,66 @@ func TestGetTailVisitNumber(t *testing.T) {
 
 func TestMoveTailToHead(t *testing.T) {
 	tests := []struct {
+		cols int
+		rows int
 		head Position
 		tail Position
 		want Position
 	}{
-		{},
+		{
+			/*
+				.....    .....    .....
+				.TH.. -> .T.H. -> ..TH.
+				.....    .....    .....
+			*/
+			cols: 5,
+			rows: 3,
+			head: Position{Row: 1, Col: 3},
+			tail: Position{Row: 1, Col: 1},
+			want: Position{Row: 1, Col: 2},
+		},
+		{
+			/*
+				...    ...    ...
+				.T.    .T.    ...
+				.H. -> ... -> .T.
+				...    .H.    .H.
+				...    ...    ...
+			*/
+			cols: 3,
+			rows: 5,
+			head: Position{Row: 3, Col: 1},
+			tail: Position{Row: 1, Col: 1},
+			want: Position{Row: 2, Col: 1},
+		},
+		{
+			/*
+				.....    .....    .....
+				.....    ..H..    ..H..
+				..H.. -> ..... -> ..T..
+				.T...    .T...    .....
+				.....    .....    .....
+			*/
+			cols: 5,
+			rows: 5,
+			head: Position{Row: 1, Col: 2},
+			tail: Position{Row: 3, Col: 1},
+			want: Position{Row: 2, Col: 2},
+		},
+		{
+			/*
+				.....    .....    .....
+				.....    .....    .....
+				..H.. -> ...H. -> ..TH.
+				.T...    .T...    .....
+				.....    .....    .....
+			*/
+			cols: 5,
+			rows: 5,
+			head: Position{Row: 2, Col: 3},
+			tail: Position{Row: 3, Col: 1},
+			want: Position{Row: 2, Col: 2},
+		},
 	}
 
 	for _, tc := range tests {
