@@ -70,6 +70,7 @@ func (m Move) String() string {
 
 func main() {
 	sleepDuration := flag.Duration("sleep", 1*time.Second, "how long to sleep")
+	printToScreen := flag.Bool("print", true, "print to screen")
 	flag.Parse()
 	f, err := os.Open("input")
 	if err != nil {
@@ -81,7 +82,7 @@ func main() {
 		fmt.Printf("%v\n", err)
 		return
 	}
-	if err := logic(content, *sleepDuration); err != nil {
+	if err := logic(content, *sleepDuration, *printToScreen); err != nil {
 		fmt.Printf("%v\n", err)
 	}
 }
@@ -98,29 +99,37 @@ func printFieldToTerminal(field *Playfield, m *Move) {
 	tm.Flush()
 }
 
-func logic(input []byte, sleepDuration time.Duration) error {
+func logic(input []byte, sleepDuration time.Duration, printToScreen bool) error {
 	// start with a 3x3 grid as we don't know the final size
 	field := newPlayfield(3, 3)
 	moves := parseMoves(string(input))
 
-	// print initial field
-	printFieldToTerminal(field, nil)
-	time.Sleep(sleepDuration)
+	if printToScreen {
+		// print initial field
+		printFieldToTerminal(field, nil)
+		time.Sleep(sleepDuration)
+	}
 
 	for _, m := range moves {
 		for i := 0; i < m.Count; i++ {
 			field.moveHead(m.Dir)
-			printFieldToTerminal(field, &m)
-			time.Sleep(sleepDuration)
+			if printToScreen {
+				printFieldToTerminal(field, &m)
+				time.Sleep(sleepDuration)
+			}
 			field.moveTailToHead()
-			printFieldToTerminal(field, &m)
-			time.Sleep(sleepDuration)
+			if printToScreen {
+				printFieldToTerminal(field, &m)
+				time.Sleep(sleepDuration)
+			}
 		}
 	}
 	field.Finished = true
-	tm.Clear()
-	tm.MoveCursor(1, 1)
-	tm.Println(field)
+	if printToScreen {
+		tm.Clear()
+		tm.MoveCursor(1, 1)
+		tm.Println(field)
+	}
 	tm.Printf("Part1: Tail visited %d tiles\n", field.getTailVisitNumber())
 	tm.Flush()
 	return nil
