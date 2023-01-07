@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -96,5 +97,29 @@ func TestGetTailVisitNumber(t *testing.T) {
 	want := 13
 	if got != want {
 		t.Fatalf("getTailVisitNumber() got %d, want %d", got, want)
+	}
+}
+
+func TestMoveTailToHead(t *testing.T) {
+	tests := []struct {
+		head Position
+		tail Position
+		want Position
+	}{
+		{},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("H %d/%d T %d/%d", tc.head.Row, tc.head.Col, tc.tail.Row, tc.tail.Col), func(t *testing.T) {
+			p := newPlayfield(3, 3)
+			p.Head.Col = tc.head.Col
+			p.Head.Row = tc.head.Row
+			p.Tail.Col = tc.tail.Col
+			p.Tail.Row = tc.tail.Row
+			p.moveTailToHead()
+			if p.Tail.Col != tc.want.Col || p.Tail.Row != tc.want.Row {
+				t.Errorf("moveTailToHead() got %d/%d want %d/%d", p.Tail.Col, p.Tail.Row, tc.want.Col, tc.want.Row)
+			}
+		})
 	}
 }
