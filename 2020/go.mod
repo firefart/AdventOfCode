@@ -1,8 +1,7 @@
 module github.com/firefart/adventofcode
 
-go 1.15
+go 1.23
 
-require (
-	github.com/sirupsen/logrus v1.7.0
-	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
-)
+require github.com/sirupsen/logrus v1.9.3
+
+require golang.org/x/sys v0.27.0 // indirect
